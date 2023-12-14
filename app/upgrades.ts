@@ -7,7 +7,7 @@ export type Upgrade = {
     description: string;
 };
 
-export const upgrades: Upgrade[] = [
+export let upgrades: Upgrade[] = [
     {
         id: 1,
         name: "Clicker",
@@ -33,6 +33,10 @@ export const upgrades: Upgrade[] = [
         description: "Crank it up even more with the speedy crank!"
     }
 ];
+
+export function setUpgrades(upgradesNew: Upgrade[]) {
+    upgrades = upgradesNew;
+}
 
 export type PlayerData = {
     score: number,
