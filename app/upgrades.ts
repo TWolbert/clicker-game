@@ -1,4 +1,4 @@
-export type Upgrade = {
+export type ClickUpgrade = {
     id: number
     name: string;
     cost: number;
@@ -7,7 +7,16 @@ export type Upgrade = {
     description: string;
 };
 
-export let upgrades: Upgrade[] = [
+export type CPSUpgrade = {
+    id: number;
+    name: string;
+    cost: number;
+    cpsIncrease: number;
+    count: number;
+    description: number;
+}
+
+export let ClickUpgrades: ClickUpgrade[] = [
     {
         id: 1,
         name: "Clicker",
@@ -34,11 +43,11 @@ export let upgrades: Upgrade[] = [
     }
 ];
 
-export function setUpgrades(upgradesNew: Upgrade[]) {
-    upgrades = upgradesNew;
+export function setSingleClickUpgrades(upgradesNew: ClickUpgrade[]) {
+    ClickUpgrades = upgradesNew;
 }
 
 export type PlayerData = {
     score: number,
-    upgrades: Upgrade[]
+    upgrades: ClickUpgrade[]
 }

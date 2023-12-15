@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useRef, useState } from 'react'
-import { PlayerData, Upgrade, setUpgrades, upgrades } from './upgrades';
+import { PlayerData, ClickUpgrades, setSingleClickUpgrades, ClickUpgrade  } from './upgrades';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -21,7 +21,7 @@ export default function Home() {
     setScore(score + scoreMultiplier);
   }
 
-  function buyUpgrade(upgrade: Upgrade) {
+  function buyUpgrade(upgrade: ClickUpgrade) {
     if (score >= upgrade.cost) {
         // round number
         setScore(Math.round((score - upgrade.cost) * 100) / 100);
@@ -29,13 +29,17 @@ export default function Home() {
         setScoreMultiplier(Math.round((scoreMultiplier + upgrade.multiplier) * 100) / 100);
 
         upgrade.count++;
+
+        for (let index = 0; index < upgrade.count; index++) {
+          upgrade.cost *= 1.05
+        }
     }
   }
 
   function saveData() {
     localStorage.setItem("playerData", JSON.stringify({
       "score": score,
-      "upgrades": upgrades
+      "upgrades": ClickUpgrades
     }));
 
     toast("Saved! 💾", {
@@ -45,12 +49,14 @@ export default function Home() {
 
   function readData() {
     const playerData: PlayerData = JSON.parse(localStorage.getItem("playerData")!);
+
+    if (!playerData) return;
     setScore(playerData.score);
-    setUpgrades(playerData.upgrades);
+    setSingleClickUpgrades(playerData.upgrades);
 
     let multiplier = 1;
 
-    upgrades.forEach(element => {
+    ClickUpgrades.forEach(element => {
       multiplier += element.multiplier * element.count;
     });
 
@@ -78,25 +84,31 @@ export default function Home() {
     }, [])
 
   return (
-    <main>
-      
-      <ToastContainer theme='dark' />
-      <button onClick={incrementScore} ref={buttonRef} className='bg-white rounded-xl px-3 py-2 text-black active:scale-95 transition-all hover:cursor-pointer '>Click me</button>
-      <p className=' tabular-nums ordinal'>Score: {Math.round(score)}</p>
-      <p>(temp) multiplier: {scoreMultiplier}</p>
+    <main className='w-screen grid-cols-3 h-screen grid gap-2'>
+      <div>
+        <ToastContainer theme='dark' />
+        <button onClick={incrementScore} ref={buttonRef} className='bg-white rounded-xl px-3 py-2 text-black active:scale-95 transition-all hover:cursor-pointer '>Click me</button>
+        <p className=' tabular-nums ordinal'>Score: {Math.round(score)}</p>
+        <p>(temp) multiplier: {Math.round(scoreMultiplier*100) / 100 }</p>
 
-      <button onClick={() => saveData()}>Save data</button>
-
-      <p>Upgrades:</p>
+        <button onClick={() => saveData()}>Save data</button>
+      </div>
+      <div>
+      <p>Click Upgrades:</p>
       <ul className='flex flex-col gap-2'>
-        {upgrades.map((upgrade, index) => (
+        {ClickUpgrades.map((upgrade, index) => (
           <li key={index}>
             <button className='bg-white rounded-xl px-3 py-2 text-black' onClick={() => {
               buyUpgrade(upgrade);
-            }}>Buy {upgrade.name} for {upgrade.cost} points</button>
+            }}>Buy {upgrade.name} for {Math.round(upgrade.cost)} points</button>
+            {upgrade.count}
           </li>
         ))}
       </ul>
+      </div>
+      <div>
+        <p>Auto click upgrades</p>
+      </div>
     </main>
   )
 }
