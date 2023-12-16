@@ -98,7 +98,7 @@ export default function Home() {
 
       const autoSaveTimer = setInterval(() => {
         saveData();
-      }, 5 * 60 * 1000)
+      }, 30 * 1000)
 
       const autoClickTimer = setInterval(() => {
         setScore((prev) => {
