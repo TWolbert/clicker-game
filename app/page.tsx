@@ -11,6 +11,7 @@ export default function Home() {
   const [autoCps, setAutoCps] = useState<number>(0);
 
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const saveButtonRef = useRef<HTMLButtonElement>(null);
 
   function incrementScore() {
     if (buttonRef.current == null) return;
@@ -54,8 +55,11 @@ export default function Home() {
    }
 
   function saveData() {
+    // Get current score
+    const curScore = Math.round(score * 100) / 100;
+
     const playerData: PlayerData = {
-      score: score,
+      score: curScore,
       upgrades: ClickUpgrades,
       cpsUpgrades: CPSUpgrades
     }
@@ -124,7 +128,7 @@ export default function Home() {
       readData();
 
       const autoSaveTimer = setInterval(() => {
-        saveData();
+        saveButtonRef.current?.click();
       }, 30 * 1000)
 
       const autoClickTimer = setInterval(() => {
@@ -159,7 +163,7 @@ export default function Home() {
         <p>(temp) multiplier: {Math.round(scoreMultiplier*100) / 100 }</p>
         <p>(temp) autoCPS: {Math.round(autoCps*100) / 100 }</p>
 
-        <button onClick={() => saveData()}>Save data</button>
+        <button onClick={() => saveData()} ref={saveButtonRef}>Save data</button>
       </div>
       <div>
       <p>Click Upgrades:</p>
