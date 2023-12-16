@@ -55,7 +55,7 @@ export default function Home() {
 
   function saveData() {
     const playerData: PlayerData = {
-      score,
+      score: score,
       upgrades: ClickUpgrades,
       cpsUpgrades: CPSUpgrades
     }
