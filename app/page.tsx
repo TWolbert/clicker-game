@@ -76,9 +76,15 @@ export default function Home() {
       if (!localStorage.getItem('playerData')) return;
 
       // Check if playerData is valid json already, if it is, it is a legacy save and we delete it
-      let legacySaveData = JSON.parse(localStorage.getItem('playerData') as string);
+      let legacySaveData;
+      try {
+        legacySaveData = JSON.parse(localStorage.getItem('playerData') as string);
+      }
+      catch {
 
-      if (legacySaveData.score) {
+      }
+
+      if (legacySaveData?.score) {
         localStorage.removeItem('playerData');
         return;
       }
