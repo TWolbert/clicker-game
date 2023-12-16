@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { PlayerData, ClickUpgrades, setSingleClickUpgrades, ClickUpgrade, CPSUpgrades, CPSUpgrade, setSingleCPSUpgrades  } from './upgrades';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import axios from 'axios';
 
 export default function Home() {
   const [score, setScore] = useState(0);
@@ -53,40 +54,60 @@ export default function Home() {
    }
 
   function saveData() {
-    localStorage.setItem("playerData", JSON.stringify({
-      "score": score,
-      "upgrades": ClickUpgrades,
-      "cpsUpgrades": CPSUpgrades
-    }));
+    const playerData: PlayerData = {
+      score,
+      upgrades: ClickUpgrades,
+      cpsUpgrades: CPSUpgrades
+    }
+
+    axios.post('/api/data/save', playerData).then((res) => { 
+      localStorage.setItem("playerData", res.data);
+    })
 
     toast("Saved! 💾", {
       type: "success"
     })
   }
 
-  function readData() {
-    const playerDataString = localStorage.getItem("playerData");
-    if (!playerDataString) return;
-  
-    const playerData: PlayerData = JSON.parse(playerDataString);
-  
-    setSingleClickUpgrades(playerData.upgrades);
-    setSingleCPSUpgrades(playerData.cpsUpgrades);
-  
-    let clickMultiplier = 1;
-    ClickUpgrades.forEach((element) => {
-      clickMultiplier += element.multiplier * element.count;
-    });
-  
-    let cps = 0;
-    CPSUpgrades.forEach((element) => {
-      cps += element.cpsIncrease * element.count;
-    });
-  
-    setScore(playerData.score);
-    setAutoCps(cps);
-    setScoreMultiplier(clickMultiplier);
-  }
+    function readData() {
+      let playerDataString = "";
+
+      // Check if playerData exists
+      if (!localStorage.getItem('playerData')) return;
+
+      // Check if playerData is valid json already, if it is, it is a legacy save and we delete it
+      let legacySaveData = JSON.parse(localStorage.getItem('playerData') as string);
+
+      if (legacySaveData.score) {
+        localStorage.removeItem('playerData');
+        return;
+      }
+
+      axios.post('/api/data/load', localStorage.getItem('playerData')).then((res) => { 
+        playerDataString = JSON.stringify(res.data);
+
+        if (!playerDataString) return;
+    
+        const playerData: PlayerData = JSON.parse(playerDataString);
+      
+        setSingleClickUpgrades(playerData.upgrades);
+        setSingleCPSUpgrades(playerData.cpsUpgrades);
+      
+        let clickMultiplier = 1;
+        ClickUpgrades.forEach((element) => {
+          clickMultiplier += element.multiplier * element.count;
+        });
+      
+        let cps = 0;
+        CPSUpgrades.forEach((element) => {
+          cps += element.cpsIncrease * element.count;
+        });
+      
+        setScore(playerData.score);
+        setAutoCps(cps);
+        setScoreMultiplier(clickMultiplier);
+      })  
+    }
   
  
   useEffect(() => {
