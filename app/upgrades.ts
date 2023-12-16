@@ -13,7 +13,7 @@ export type CPSUpgrade = {
     cost: number;
     cpsIncrease: number;
     count: number;
-    description: number;
+    description: string;
 }
 
 export let ClickUpgrades: ClickUpgrade[] = [
@@ -43,11 +43,43 @@ export let ClickUpgrades: ClickUpgrade[] = [
     }
 ];
 
+export let CPSUpgrades: CPSUpgrade[] = [
+    {
+        id: 1,
+        name: "Auto Clicker",
+        cost: 100,
+        cpsIncrease: 1,
+        count: 0,
+        description: "Clicks for you!"
+    },
+    {
+        id: 2,
+        name: "Auto Crank",
+        cost: 1000,
+        cpsIncrease: 5,
+        count: 0,
+        description: "Cranks up the clicks!"
+    },
+    {
+        id: 3,
+        name: "Speedy Auto Crank",
+        cost: 10000,
+        cpsIncrease: 10,
+        count: 0,
+        description: "Crank it up even more with the speedy crank!"
+    }
+]
+
 export function setSingleClickUpgrades(upgradesNew: ClickUpgrade[]) {
     ClickUpgrades = upgradesNew;
 }
 
+export function setSingleCPSUpgrades(upgradesNew: CPSUpgrade[]) {
+    CPSUpgrades = upgradesNew;
+}
+
 export type PlayerData = {
     score: number,
-    upgrades: ClickUpgrade[]
+    upgrades: ClickUpgrade[],
+    cpsUpgrades: CPSUpgrade[],
 }

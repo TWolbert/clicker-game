@@ -1,12 +1,13 @@
 "use client"
 import React, { useEffect, useRef, useState } from 'react'
-import { PlayerData, ClickUpgrades, setSingleClickUpgrades, ClickUpgrade  } from './upgrades';
+import { PlayerData, ClickUpgrades, setSingleClickUpgrades, ClickUpgrade, CPSUpgrades, CPSUpgrade, setSingleCPSUpgrades  } from './upgrades';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 export default function Home() {
   const [score, setScore] = useState(0);
   const [scoreMultiplier, setScoreMultiplier] = useState(1);
+  const [autoCps, setAutoCps] = useState<number>(0);
 
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -35,11 +36,27 @@ export default function Home() {
         }
     }
   }
+  
+  function buyAutoUpgrade(upgrade: CPSUpgrade) {
+    if (score >= upgrade.cost) {
+        // round number
+        setScore(Math.round((score - upgrade.cost) * 100) / 100);
+        // round number
+        setAutoCps(Math.round((autoCps + upgrade.cpsIncrease) * 100) / 100);
+
+        upgrade.count++;
+
+        for (let index = 0; index < upgrade.count; index++) {
+          upgrade.cost *= 1.05
+        }
+    }
+   }
 
   function saveData() {
     localStorage.setItem("playerData", JSON.stringify({
       "score": score,
-      "upgrades": ClickUpgrades
+      "upgrades": ClickUpgrades,
+      "cpsUpgrades": CPSUpgrades
     }));
 
     toast("Saved! 💾", {
@@ -48,20 +65,29 @@ export default function Home() {
   }
 
   function readData() {
-    const playerData: PlayerData = JSON.parse(localStorage.getItem("playerData")!);
-
-    if (!playerData) return;
-    setScore(playerData.score);
+    const playerDataString = localStorage.getItem("playerData");
+    if (!playerDataString) return;
+  
+    const playerData: PlayerData = JSON.parse(playerDataString);
+  
     setSingleClickUpgrades(playerData.upgrades);
-
-    let multiplier = 1;
-
-    ClickUpgrades.forEach(element => {
-      multiplier += element.multiplier * element.count;
+    setSingleCPSUpgrades(playerData.cpsUpgrades);
+  
+    let clickMultiplier = 1;
+    ClickUpgrades.forEach((element) => {
+      clickMultiplier += element.multiplier * element.count;
     });
-
-    setScoreMultiplier(multiplier);
+  
+    let cps = 0;
+    CPSUpgrades.forEach((element) => {
+      cps += element.cpsIncrease * element.count;
+    });
+  
+    setScore(playerData.score);
+    setAutoCps(cps);
+    setScoreMultiplier(clickMultiplier);
   }
+  
  
   useEffect(() => {
       if(buttonRef.current != null) {
@@ -74,12 +100,26 @@ export default function Home() {
         saveData();
       }, 5 * 60 * 1000)
 
+      const autoClickTimer = setInterval(() => {
+        setScore((prev) => {
+          // Get current autoCPS
+          let currentAutoCps = 0;
+
+          CPSUpgrades.forEach((element) => {
+            currentAutoCps += element.cpsIncrease * element.count;
+          });
+
+          return prev += currentAutoCps;
+        });
+      }, 1000);
+
       if(buttonRef.current != null) {
         buttonRef.current.disabled = false;
       }
 
       return () => {
         clearInterval(autoSaveTimer);
+        clearInterval(autoClickTimer);
       }
     }, [])
 
@@ -90,6 +130,7 @@ export default function Home() {
         <button onClick={incrementScore} ref={buttonRef} className='bg-white rounded-xl px-3 py-2 text-black active:scale-95 transition-all hover:cursor-pointer '>Click me</button>
         <p className=' tabular-nums ordinal'>Score: {Math.round(score)}</p>
         <p>(temp) multiplier: {Math.round(scoreMultiplier*100) / 100 }</p>
+        <p>(temp) autoCPS: {Math.round(autoCps*100) / 100 }</p>
 
         <button onClick={() => saveData()}>Save data</button>
       </div>
@@ -105,9 +146,20 @@ export default function Home() {
           </li>
         ))}
       </ul>
+      <p>Auto upgrades:</p>
+      <ul className='flex flex-col gap-2'>
+        {CPSUpgrades.map((upgrade, index) => (
+          <li key={index}>
+            <button className='bg-white rounded-xl px-3 py-2 text-black' onClick={() => {
+              buyAutoUpgrade(upgrade);
+            }}>Buy {upgrade.name} for {Math.round(upgrade.cost)} points</button>
+            {upgrade.count}
+          </li>
+        ))}
+      </ul>
       </div>
       <div>
-        <p>Auto click upgrades</p>
+        <p>Your stats will show here some day</p>
       </div>
     </main>
   )
