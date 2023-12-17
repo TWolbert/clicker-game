@@ -55,6 +55,9 @@ export default function Home() {
    }
 
   function saveData() {
+    if (saveButtonRef.current == null) return;
+    saveButtonRef.current.disabled = true;
+
     // Get current score
     const curScore = Math.round(score * 100) / 100;
 
@@ -66,11 +69,16 @@ export default function Home() {
 
     axios.post('/api/data/save', playerData).then((res) => { 
       localStorage.setItem("playerData", res.data);
-    })
+    }).finally(() => {
+      if (saveButtonRef.current == null) return;
+      saveButtonRef.current.disabled = false;
+     })
 
     toast("Saved! 💾", {
       type: "success"
     })
+
+    
   }
 
     function readData() {
@@ -99,6 +107,8 @@ export default function Home() {
         if (!playerDataString) return;
     
         const playerData: PlayerData = JSON.parse(playerDataString);
+
+        console.log(playerData);
       
         setSingleClickUpgrades(playerData.upgrades);
         setSingleCPSUpgrades(playerData.cpsUpgrades);
@@ -135,6 +145,8 @@ export default function Home() {
         setScore((prev) => {
           // Get current autoCPS
           let currentAutoCps = 0;
+
+          if (!CPSUpgrades) return prev;
 
           CPSUpgrades.forEach((element) => {
             currentAutoCps += element.cpsIncrease * element.count;

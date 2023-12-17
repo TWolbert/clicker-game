@@ -1,8 +1,9 @@
 import { PlayerData } from "@/app/upgrades";
+import { encrypt } from "../_functions/encrypt";
 
 export async function POST(request:Request) {
     let saveData: PlayerData = await request.json();
-    let encryptedSaveData = btoa(JSON.stringify(saveData));
+    let encryptedSaveData = encrypt(JSON.stringify(saveData));
 
     return new Response(encryptedSaveData, {
         headers: {
