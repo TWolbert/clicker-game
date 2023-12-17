@@ -58,7 +58,7 @@ export default function Home() {
     if (saveButtonRef.current == null) return;
     saveButtonRef.current.disabled = true;
 
-    // Get current score
+    // Get current score rounded to avoid bullshit with saving
     const curScore = Math.round(score * 100) / 100;
 
     const playerData: PlayerData = {
@@ -77,8 +77,6 @@ export default function Home() {
     toast("Saved! 💾", {
       type: "success"
     })
-
-    
   }
 
     function readData() {
