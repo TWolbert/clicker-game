@@ -29,7 +29,7 @@ export let ClickUpgrades: ClickUpgrade[] = [
         id: 2,
         name: "Crank",
         cost: 100,
-        multiplier: 0.25,
+        multiplier: 1,
         count: 0,
         description: "Cranks up the clicks!"
     },
@@ -37,7 +37,7 @@ export let ClickUpgrades: ClickUpgrade[] = [
         id: 3,
         name: "Speedy Crank",
         cost: 1000,
-        multiplier: 0.35,
+        multiplier: 10,
         count: 0,
         description: "Crank it up even more with the speedy crank!"
     }
