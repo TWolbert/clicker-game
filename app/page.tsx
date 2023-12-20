@@ -12,11 +12,14 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import numeral from "numeral";
+import Emerald from "./_components/Emerald";
 
 export default function Home() {
-    const [score, setScore] = useState(0);
+    const [score, setScore] = useState(10000);
     const [scoreMultiplier, setScoreMultiplier] = useState(1);
     const [autoCps, setAutoCps] = useState<number>(0);
+    const [selectedCategory, setSelectedCategory] = useState('click');
 
     const buttonRef = useRef<HTMLButtonElement>(null);
     const saveButtonRef = useRef<HTMLButtonElement>(null);
@@ -31,6 +34,11 @@ export default function Home() {
         }, 50);
         setScore(score + scoreMultiplier);
     }
+
+    const handleToggle = (category: string) => {
+        setSelectedCategory(category);
+    };
+
 
     function buyUpgrade(upgrade: ClickUpgrade) {
         if (score >= upgrade.cost) {
@@ -178,66 +186,116 @@ export default function Home() {
     }, []);
 
     return (
-        <main className="w-screen grid-cols-3 h-screen grid gap-2">
+        <main className="w-screen grid-cols-3 h-screen grid gap-2 bg-background overflow-hidden">
             <div>
                 <ToastContainer theme="dark" />
-                <button
-                    onClick={incrementScore}
-                    ref={buttonRef}
-                    className="bg-white rounded-xl px-3 py-2 text-black active:scale-95 transition-all hover:cursor-pointer "
-                >
-                    Click me
-                </button>
-                <p className=" tabular-nums ordinal">
-                    Score: {Math.round(score)}
-                </p>
-                <p>
-                    (temp) multiplier: {Math.round(scoreMultiplier * 100) / 100}
-                </p>
-                <p>(temp) autoCPS: {Math.round(autoCps * 100) / 100}</p>
 
+                <div className=" flex flex-row">
+                    <div className="flex items-center mx-auto w-fit gap-2">
+                        <Emerald className="h-6" />
+                        <p className=" tabular-nums ordinal">
+                            Emeralds: {numeral(Math.round(score)).format("0.0a").toUpperCase()}
+                        </p>
+                    </div>
+
+                    <div className="flex items-center mx-auto w-fit gap-2">
+                        <Emerald className="h-6" />
+                        <p className=" tabular-nums ordinal">
+                            per second: {numeral(Math.round(autoCps)).format("0.0a").toUpperCase()}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex items-center justify-center h-full">
+                    <button
+                        onClick={incrementScore}
+                        ref={buttonRef}
+                        className="text-text active:scale-95 transition-all hover:cursor-pointer m-auto h-fit w-fit"
+                    >
+                        <Emerald className="h-50" />
+                    </button>
+                </div>
+
+
+            </div>
+
+            <div className="p-2 bg-primary/30">
+            <div className="flex justify-center items-center gap-4">
+                <button
+                    className={`px-4 py-2 text-black rounded-xl transition-all ${selectedCategory === 'click' ? 'bg-white text-black' : 'bg-primary'}`}
+                    onClick={() => handleToggle('click')}
+                >
+                    Click Upgrades
+                </button>
+                <button
+                    className={`px-4 py-2 text-black rounded-xl transition-all ${selectedCategory === 'auto' ? 'bg-white text-black' : 'bg-primary'}`}
+                    onClick={() => handleToggle('auto')}
+                >
+                    Auto Upgrades
+                </button>
+            </div>
+
+            <p>{selectedCategory === 'click' ? 'Click Upgrades:' : 'Auto Upgrades:'}</p>
+            <ul className="flex flex-col gap-2">
+                {selectedCategory === 'click' ? (
+                    // Render Click Upgrades
+                        ClickUpgrades.map((upgrade, index) => (
+                            <li key={index} className="px-3 py-2 rounded-xl bg-primary/30 flex justify-between items-center">
+                                {upgrade.name}{" "}
+                                <div className="flex gap-2 items-center w-full max-w-[40%]">
+                                <button
+                                    className="bg-white rounded-xl px-3 py-2 text-black w-full active:scale-95 flex justify-between items-center"
+                                    onClick={() => {
+                                        buyUpgrade(upgrade);
+                                    }}
+                                >  
+                                    <Emerald className="h-6" />
+                                    <p>
+                                        Buy for{" "}
+                                        {numeral(Math.round(upgrade.cost)).format("0.0a").toUpperCase()} points
+                                    </p>
+    
+                                </button>
+                                <p className=" tabular-nums ordinal">
+                                    {upgrade.count}
+                                </p>
+    
+                                </div>
+                            </li>
+                        ))
+                ) : (
+                    // Render Auto Upgrades
+                    CPSUpgrades.map((upgrade, index) => (
+                        <li key={index} className="px-3 py-2 rounded-xl bg-gray-800 flex justify-between items-center">
+                        {upgrade.name}{" "}
+                        <div className="flex gap-2 items-center w-full max-w-[40%]">
+                        <button
+                            className="bg-white rounded-xl px-3 py-2 text-black w-full"
+                            onClick={() => {
+                                buyAutoUpgrade(upgrade);
+                            }}
+                        >
+                            <p>
+                                Buy for{" "}
+                                {numeral(Math.round(upgrade.cost)).format("0.0a").toUpperCase()} points
+                            </p>
+
+                        </button>
+                        <p className=" tabular-nums ordinal">
+                            {upgrade.count}
+                        </p>
+
+                        </div>
+                        </li>
+                    ))
+                )}
+            </ul>
+        </div>
+            <div>
+                <p>Your stats will show here some day</p>
                 <button onClick={() => saveData()} ref={saveButtonRef}>
                     Save data
                 </button>
-            </div>
-            <div>
-                <p>Click Upgrades:</p>
-                <ul className="flex flex-col gap-2">
-                    {ClickUpgrades.map((upgrade, index) => (
-                        <li key={index}>
-                            <button
-                                className="bg-white rounded-xl px-3 py-2 text-black"
-                                onClick={() => {
-                                    buyUpgrade(upgrade);
-                                }}
-                            >
-                                Buy {upgrade.name} for{" "}
-                                {Math.round(upgrade.cost)} points
-                            </button>
-                            {upgrade.count}
-                        </li>
-                    ))}
-                </ul>
-                <p>Auto upgrades:</p>
-                <ul className="flex flex-col gap-2">
-                    {CPSUpgrades.map((upgrade, index) => (
-                        <li key={index}>
-                            <button
-                                className="bg-white rounded-xl px-3 py-2 text-black"
-                                onClick={() => {
-                                    buyAutoUpgrade(upgrade);
-                                }}
-                            >
-                                Buy {upgrade.name} for{" "}
-                                {Math.round(upgrade.cost)} points
-                            </button>
-                            {upgrade.count}
-                        </li>
-                    ))}
-                </ul>
-            </div>
-            <div>
-                <p>Your stats will show here some day</p>
             </div>
         </main>
     );

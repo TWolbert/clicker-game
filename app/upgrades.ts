@@ -19,27 +19,51 @@ export type CPSUpgrade = {
 export let ClickUpgrades: ClickUpgrade[] = [
     {
         id: 1,
-        name: "Clicker",
+        name: "Schreeuwen in general VC",
         cost: 10,
         multiplier: 0.1,
         count: 0,
-        description: "Clicks for you!"
+        description: "Door de VC schreeuwen!"
     },
     {
         id: 2,
-        name: "Crank",
+        name: "Tegen Bryan zeuren dat de server lagged",
         cost: 100,
         multiplier: 1,
         count: 0,
-        description: "Cranks up the clicks!"
+        description: "Bryan is er niet blij mee..."
     },
     {
         id: 3,
-        name: "Speedy Crank",
+        name: "12GB ram gebruiken",
         cost: 1000,
         multiplier: 10,
         count: 0,
-        description: "Crank it up even more with the speedy crank!"
+        description: "Je minecraft client lagged hem helemaal kapot!"
+    },
+    {
+        id: 4,
+        name: "Een nieuwe server kopen",
+        cost: 10000,
+        multiplier: 100,
+        count: 0,
+        description: "Hostvio nog meer geld geven? Gatver..."
+    },
+    {
+        id: 5,
+        name: "De nether in",
+        cost: 35000,
+        multiplier: 250,
+        count: 0,
+        description: "Vorige keer dat je de nether in ging, crashte de server."
+    },
+    {
+        id: 5,
+        name: "Mekanism Jetpack",
+        cost: 100000,
+        multiplier: 1000,
+        count: 0,
+        description: "Je vliegt de hele server over!"
     }
 ];
 
