@@ -20,7 +20,7 @@ export default function Home() {
     const [score, setScore] = useState(0);
     const [scoreMultiplier, setScoreMultiplier] = useState(1);
     const [autoCps, setAutoCps] = useState<number>(0);
-    const [selectedCategory, setSelectedCategory] = useState("click");
+    const [selectedCategory, setSelectedCategory] = useState("auto");
     const [currentBG, setCurrentBG] = useState("/overworld.webp");
 
     const buttonRef = useRef<HTMLButtonElement>(null);
@@ -29,11 +29,15 @@ export default function Home() {
     function incrementScore() {
         if (buttonRef.current == null) return;
 
-        buttonRef.current.disabled = true;
-        setTimeout(() => {
-            if (buttonRef.current == null) return;
-            buttonRef.current.disabled = false;
-        }, 50);
+        // buttonRef.current.disabled = true;
+        // Play click sound
+        const audio = new Audio("/click.mp3");
+        audio.play();
+
+        // setTimeout(() => {
+        //     if (buttonRef.current == null) return;
+        //     buttonRef.current.disabled = false;
+        // }, 50);
         setScore(score + scoreMultiplier);
     }
 
@@ -111,7 +115,6 @@ export default function Home() {
         // Check if playerData exists
         if (!localStorage.getItem("playerData")) return;
 
-        // Check if playerData is valid json already, if it is, it is a legacy save and we delete it
         let legacySaveData;
         try {
             legacySaveData = JSON.parse(
@@ -157,6 +160,12 @@ export default function Home() {
             });
     }
 
+    function formatNumber(num: number) {
+        // If number is below 1000, return just a normal number rounded to 1 decimal point
+        if (num < 1000) return Math.round(num * 10) / 10;
+        return numeral(Math.round(num)).format("0.0a").toUpperCase();
+     }
+
     useEffect(() => {
         if (buttonRef.current != null) {
             buttonRef.current.disabled = true;
@@ -193,10 +202,80 @@ export default function Home() {
         };
     }, []);
 
+    const [currentItemName, setCurrentItemName] = useState<string>("");
+    const [currentItemDescription, setCurrentItemDescription] = useState<string>("");
+    const [currentItemCost, setCurrentItemCost] = useState<number>(0);
+    const [currentItemMultiplier, setCurrentItemMultiplier] = useState<number>(0);
+    const [currentItemCpsIncrease, setCurrentItemCpsIncrease] = useState<number>(0);
+    const [currentItemCount, setCurrentItemCount] = useState<number>(0);
+
+    function showClickModalDialog(id: number) {
+        const item = ClickUpgrades.find((item) => item.id === id);
+
+        if (!item) return;
+
+        setCurrentItemName(item.name);
+        setCurrentItemDescription(item.description);
+        setCurrentItemCost(item.cost);
+        setCurrentItemMultiplier(item.multiplier);
+        setCurrentItemCpsIncrease(0);
+        setCurrentItemCount(item.count);
+
+        const dialog = document.querySelector("dialog");
+        if (dialog) {
+            dialog.showModal();
+        }
+     }
+
+    function showAutoModalDialog(id: number) {
+        const item = CPSUpgrades.find((item) => item.id === id);
+
+        if (!item) return;
+
+        setCurrentItemName(item.name);
+        setCurrentItemDescription(item.description);
+        setCurrentItemCost(item.cost);
+        setCurrentItemMultiplier(0);
+        setCurrentItemCpsIncrease(item.cpsIncrease);
+        setCurrentItemCount(item.count);
+
+        const dialog = document.querySelector("dialog");
+        if (dialog) {
+            dialog.showModal();
+        }
+    }
+
     return (
         <main className="w-screen grid-cols-3 h-screen grid gap-2 bg-background overflow-hidden">
             <div>
                 <ToastContainer theme="dark" />
+                <dialog className="bg-primary rounded-xl p-3 text-white">
+                    <p className="text-2xl font-bold">{currentItemName}</p>
+                    <p>Upgrade description: {currentItemDescription}</p>
+                    <p>Cost: {formatNumber(currentItemCost)}</p>
+                    {currentItemMultiplier > 0 ? (
+                        <p>Emeralds per click: +{currentItemMultiplier}</p>
+                    ) : (
+                        ""
+                    )}
+                    {currentItemCpsIncrease > 0 ? (
+                        <p>CPS Increase: +{currentItemCpsIncrease}x</p>
+                    ) : (
+                        ""
+                    )}
+                    <p>Count: {currentItemCount}</p>  
+                    <button
+                        className="bg-white rounded-xl px-3 py-2 text-black w-full active:scale-95 flex justify-between items-center"
+                        onClick={() => {
+                            const dialog = document.querySelector("dialog");
+                            if (dialog) {
+                                dialog.close();
+                            }
+                        }}
+                    >
+                        <p className="text-sm">Close</p>
+                    </button>
+                </dialog>
 
                 <div className="z-10 absolute w-[33%]">
                     <div className=" flex flex-col">
@@ -204,18 +283,14 @@ export default function Home() {
                             <Emerald className="h-12" />
                             <p className=" tabular-nums ordinal text-3xl font-bold">
                                 Emeralds:{" "}
-                                {numeral(Math.round(score))
-                                    .format("0.0a")
-                                    .toUpperCase()}
+                                {formatNumber(score)}
                             </p>
                         </div>
 
                         <div className="flex items-center mx-auto w-fit gap-2">
                             <p className=" tabular-nums ordinal">
                                 Emeralds per second:{" "}
-                                {numeral(Math.round(autoCps))
-                                    .format("0.0a")
-                                    .toUpperCase()}
+                                {formatNumber(autoCps)}
                             </p>
                         </div>
                     </div>
@@ -233,15 +308,15 @@ export default function Home() {
                     <button
                         onClick={incrementScore}
                         ref={buttonRef}
-                        className="text-text active:scale-95 transition-all hover:cursor-pointer m-auto h-fit w-fit z-10 drop-shadow-2xl"
+                        className="text-text active:scale-95 transition-all hover:cursor-pointer m-auto h-fit w-fit z-10 drop-shadow-2xl duration-75"
                     >
                         <Emerald className="h-50" />
                     </button>
                 </div>
             </div>
 
-            <div className="p-2 bg-primary/30">
-                <div className="flex justify-center items-center gap-4">
+            <div className="p-3 bg-primary/30">
+                <div className="flex justify-center items-center gap-4 mb-2">
                     <button
                         className={`px-4 py-2 text-black rounded-xl transition-all ${
                             selectedCategory === "click"
@@ -277,7 +352,7 @@ export default function Home() {
                                   key={index}
                                   className="px-3 py-2 rounded-xl bg-primary/30 flex justify-between items-center"
                               >
-                                  <p className="w-fit text-sm">
+                                  <p className="w-fit text-sm" onClick={() => showClickModalDialog(upgrade.id)}>
                                       {upgrade.name}{" "}
                                   </p>
 
@@ -289,12 +364,10 @@ export default function Home() {
                                           }}
                                       >
                                           <Emerald className="h-6" />
-                                          <p>
+                                          <p className="text-sm">
                                               Buy for{" "}
-                                              {numeral(Math.round(upgrade.cost))
-                                                  .format("0.0a")
-                                                  .toUpperCase()}{" "}
-                                              points
+                                              {formatNumber(upgrade.cost)}{" "}
+                                              Emeralds
                                           </p>
                                       </button>
                                       <div className="flex items-center gap-2 justify-center">
@@ -319,7 +392,7 @@ export default function Home() {
                                   key={index}
                                   className="px-3 py-2 rounded-xl bg-gray-800 flex justify-between items-center"
                               >
-                                  <p className="w-fit text-sm">
+                                  <p className="w-fit text-sm" onClick={() => showAutoModalDialog(upgrade.id)}>
                                       {upgrade.name}{" "}
                                   </p>
                                   <div className="flex gap-2 items-center w-full max-w-[50%]">
@@ -330,12 +403,10 @@ export default function Home() {
                                           }}
                                       >
                                           <Emerald className="h-6" />
-                                          <p>
+                                          <p className="text-sm">
                                               Buy for{" "}
-                                              {numeral(Math.round(upgrade.cost))
-                                                  .format("0.0a")
-                                                  .toUpperCase()}{" "}
-                                              points
+                                              {formatNumber(upgrade.cost)}{" "}
+                                              Emeralds
                                           </p>
                                       </button>
                                       <div className="flex items-center gap-2 justify-center">
@@ -356,10 +427,28 @@ export default function Home() {
                           ))}
                 </ul>
             </div>
-            <div>
-                <p>Your stats will show here some day</p>
+            <div className="flex flex-col gap-2 p-2 bg-obsidian bg-small">
+                <p>Your stats: </p>
+                <ul className="flex flex-col gap-2">
+                    <li className="px-3 py-2 rounded-xl bg-primary/50 flex justify-between items-center">
+                        <p className="w-fit text-sm">Emeralds per click: </p>
+                        <p className="w-fit text-sm">
+                            {formatNumber(scoreMultiplier)}
+                        </p>
+                    </li>
+                    <li className="px-3 py-2 rounded-xl bg-primary/50 flex justify-between items-center">
+                        <p className="w-fit text-sm">Emeralds per second: </p>
+                        <p className="w-fit text-sm">
+                            {formatNumber(autoCps)}
+                        </p>
+                    </li>
+                </ul>
                 <button onClick={() => saveData()} ref={saveButtonRef}>
                     Save data
+                </button>
+                {/* Button to reset playerData */}
+                <button onClick={() => localStorage.removeItem("playerData")}>
+                    Reset data
                 </button>
             </div>
         </main>
