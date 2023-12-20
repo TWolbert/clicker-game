@@ -14,12 +14,14 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import numeral from "numeral";
 import Emerald from "./_components/Emerald";
+import Image from "next/image";
 
 export default function Home() {
-    const [score, setScore] = useState(10000);
+    const [score, setScore] = useState(0);
     const [scoreMultiplier, setScoreMultiplier] = useState(1);
     const [autoCps, setAutoCps] = useState<number>(0);
-    const [selectedCategory, setSelectedCategory] = useState('click');
+    const [selectedCategory, setSelectedCategory] = useState("click");
+    const [currentBG, setCurrentBG] = useState("/overworld.webp");
 
     const buttonRef = useRef<HTMLButtonElement>(null);
     const saveButtonRef = useRef<HTMLButtonElement>(null);
@@ -39,7 +41,6 @@ export default function Home() {
         setSelectedCategory(category);
     };
 
-
     function buyUpgrade(upgrade: ClickUpgrade) {
         if (score >= upgrade.cost) {
             // round number
@@ -50,6 +51,10 @@ export default function Home() {
             );
 
             upgrade.count++;
+
+            if (upgrade.image && upgrade.count === 1) {
+                setCurrentBG(upgrade.image!);
+            }
 
             for (let index = 0; index < upgrade.count; index++) {
                 upgrade.cost *= 1.05;
@@ -136,6 +141,9 @@ export default function Home() {
                 let clickMultiplier = 1;
                 ClickUpgrades.forEach((element) => {
                     clickMultiplier += element.multiplier * element.count;
+                    if (element.image && element.count > 0) {
+                        setCurrentBG(element.image!);
+                    }
                 });
 
                 let cps = 0;
@@ -190,107 +198,164 @@ export default function Home() {
             <div>
                 <ToastContainer theme="dark" />
 
-                <div className=" flex flex-row">
-                    <div className="flex items-center mx-auto w-fit gap-2">
-                        <Emerald className="h-6" />
-                        <p className=" tabular-nums ordinal">
-                            Emeralds: {numeral(Math.round(score)).format("0.0a").toUpperCase()}
-                        </p>
-                    </div>
+                <div className="z-10 absolute w-[33%]">
+                    <div className=" flex flex-col">
+                        <div className="flex items-center mx-auto w-fit gap-2">
+                            <Emerald className="h-12" />
+                            <p className=" tabular-nums ordinal text-3xl font-bold">
+                                Emeralds:{" "}
+                                {numeral(Math.round(score))
+                                    .format("0.0a")
+                                    .toUpperCase()}
+                            </p>
+                        </div>
 
-                    <div className="flex items-center mx-auto w-fit gap-2">
-                        <Emerald className="h-6" />
-                        <p className=" tabular-nums ordinal">
-                            per second: {numeral(Math.round(autoCps)).format("0.0a").toUpperCase()}
-                        </p>
+                        <div className="flex items-center mx-auto w-fit gap-2">
+                            <p className=" tabular-nums ordinal">
+                                Emeralds per second:{" "}
+                                {numeral(Math.round(autoCps))
+                                    .format("0.0a")
+                                    .toUpperCase()}
+                            </p>
+                        </div>
                     </div>
                 </div>
 
-                <div className="flex items-center justify-center h-full">
+                <div className="flex items-center justify-center h-full relative">
+                    <Image
+                        src={currentBG}
+                        className="h-full w-full object-cover absolute z-0 blur-md"
+                        alt="Background"
+                        priority={true}
+                        width={1920}
+                        height={1080}
+                    />
                     <button
                         onClick={incrementScore}
                         ref={buttonRef}
-                        className="text-text active:scale-95 transition-all hover:cursor-pointer m-auto h-fit w-fit"
+                        className="text-text active:scale-95 transition-all hover:cursor-pointer m-auto h-fit w-fit z-10 drop-shadow-2xl"
                     >
                         <Emerald className="h-50" />
                     </button>
                 </div>
-
-
             </div>
 
             <div className="p-2 bg-primary/30">
-            <div className="flex justify-center items-center gap-4">
-                <button
-                    className={`px-4 py-2 text-black rounded-xl transition-all ${selectedCategory === 'click' ? 'bg-white text-black' : 'bg-primary'}`}
-                    onClick={() => handleToggle('click')}
-                >
-                    Click Upgrades
-                </button>
-                <button
-                    className={`px-4 py-2 text-black rounded-xl transition-all ${selectedCategory === 'auto' ? 'bg-white text-black' : 'bg-primary'}`}
-                    onClick={() => handleToggle('auto')}
-                >
-                    Auto Upgrades
-                </button>
+                <div className="flex justify-center items-center gap-4">
+                    <button
+                        className={`px-4 py-2 text-black rounded-xl transition-all ${
+                            selectedCategory === "click"
+                                ? "bg-white text-black"
+                                : "bg-primary"
+                        }`}
+                        onClick={() => handleToggle("click")}
+                    >
+                        Click Upgrades
+                    </button>
+                    <button
+                        className={`px-4 py-2 text-black rounded-xl transition-all ${
+                            selectedCategory === "auto"
+                                ? "bg-white text-black"
+                                : "bg-primary"
+                        }`}
+                        onClick={() => handleToggle("auto")}
+                    >
+                        Auto Upgrades
+                    </button>
+                </div>
+
+                <p>
+                    {selectedCategory === "click"
+                        ? "Click Upgrades:"
+                        : "Auto Upgrades:"}
+                </p>
+                <ul className="flex flex-col gap-2">
+                    {selectedCategory === "click"
+                        ? // Render Click Upgrades
+                          ClickUpgrades.map((upgrade, index) => (
+                              <li
+                                  key={index}
+                                  className="px-3 py-2 rounded-xl bg-primary/30 flex justify-between items-center"
+                              >
+                                  <p className="w-fit text-sm">
+                                      {upgrade.name}{" "}
+                                  </p>
+
+                                  <div className="flex gap-2 items-center w-full max-w-[50%]">
+                                      <button
+                                          className="bg-white rounded-xl px-3 py-2 text-black w-full active:scale-95 flex justify-between items-center"
+                                          onClick={() => {
+                                              buyUpgrade(upgrade);
+                                          }}
+                                      >
+                                          <Emerald className="h-6" />
+                                          <p>
+                                              Buy for{" "}
+                                              {numeral(Math.round(upgrade.cost))
+                                                  .format("0.0a")
+                                                  .toUpperCase()}{" "}
+                                              points
+                                          </p>
+                                      </button>
+                                      <div className="flex items-center gap-2 justify-center">
+                                          <Image
+                                              src={"/Chest.png"}
+                                              width={20}
+                                              height={20}
+                                              priority={true}
+                                              alt="Chest"
+                                              className=""
+                                          />
+                                          <p className=" tabular-nums ordinal">
+                                              {upgrade.count}
+                                          </p>
+                                      </div>
+                                  </div>
+                              </li>
+                          ))
+                        : // Render Auto Upgrades
+                          CPSUpgrades.map((upgrade, index) => (
+                              <li
+                                  key={index}
+                                  className="px-3 py-2 rounded-xl bg-gray-800 flex justify-between items-center"
+                              >
+                                  <p className="w-fit text-sm">
+                                      {upgrade.name}{" "}
+                                  </p>
+                                  <div className="flex gap-2 items-center w-full max-w-[50%]">
+                                      <button
+                                          className="bg-white rounded-xl px-3 py-2 text-black w-full active:scale-95 flex justify-between items-center"
+                                          onClick={() => {
+                                              buyAutoUpgrade(upgrade);
+                                          }}
+                                      >
+                                          <Emerald className="h-6" />
+                                          <p>
+                                              Buy for{" "}
+                                              {numeral(Math.round(upgrade.cost))
+                                                  .format("0.0a")
+                                                  .toUpperCase()}{" "}
+                                              points
+                                          </p>
+                                      </button>
+                                      <div className="flex items-center gap-2 justify-center">
+                                          <Image
+                                              src={"/Chest.png"}
+                                              width={20}
+                                              height={20}
+                                              priority={true}
+                                              alt="Chest"
+                                              className=""
+                                          />
+                                          <p className=" tabular-nums ordinal">
+                                              {upgrade.count}
+                                          </p>
+                                      </div>
+                                  </div>
+                              </li>
+                          ))}
+                </ul>
             </div>
-
-            <p>{selectedCategory === 'click' ? 'Click Upgrades:' : 'Auto Upgrades:'}</p>
-            <ul className="flex flex-col gap-2">
-                {selectedCategory === 'click' ? (
-                    // Render Click Upgrades
-                        ClickUpgrades.map((upgrade, index) => (
-                            <li key={index} className="px-3 py-2 rounded-xl bg-primary/30 flex justify-between items-center">
-                                {upgrade.name}{" "}
-                                <div className="flex gap-2 items-center w-full max-w-[40%]">
-                                <button
-                                    className="bg-white rounded-xl px-3 py-2 text-black w-full active:scale-95 flex justify-between items-center"
-                                    onClick={() => {
-                                        buyUpgrade(upgrade);
-                                    }}
-                                >  
-                                    <Emerald className="h-6" />
-                                    <p>
-                                        Buy for{" "}
-                                        {numeral(Math.round(upgrade.cost)).format("0.0a").toUpperCase()} points
-                                    </p>
-    
-                                </button>
-                                <p className=" tabular-nums ordinal">
-                                    {upgrade.count}
-                                </p>
-    
-                                </div>
-                            </li>
-                        ))
-                ) : (
-                    // Render Auto Upgrades
-                    CPSUpgrades.map((upgrade, index) => (
-                        <li key={index} className="px-3 py-2 rounded-xl bg-gray-800 flex justify-between items-center">
-                        {upgrade.name}{" "}
-                        <div className="flex gap-2 items-center w-full max-w-[40%]">
-                        <button
-                            className="bg-white rounded-xl px-3 py-2 text-black w-full"
-                            onClick={() => {
-                                buyAutoUpgrade(upgrade);
-                            }}
-                        >
-                            <p>
-                                Buy for{" "}
-                                {numeral(Math.round(upgrade.cost)).format("0.0a").toUpperCase()} points
-                            </p>
-
-                        </button>
-                        <p className=" tabular-nums ordinal">
-                            {upgrade.count}
-                        </p>
-
-                        </div>
-                        </li>
-                    ))
-                )}
-            </ul>
-        </div>
             <div>
                 <p>Your stats will show here some day</p>
                 <button onClick={() => saveData()} ref={saveButtonRef}>
