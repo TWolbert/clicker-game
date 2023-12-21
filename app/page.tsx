@@ -29,15 +29,15 @@ export default function Home() {
     function incrementScore() {
         if (buttonRef.current == null) return;
 
-        // buttonRef.current.disabled = true;
+        buttonRef.current.disabled = true;
         // Play click sound
         const audio = new Audio("/click.mp3");
         audio.play();
 
-        // setTimeout(() => {
-        //     if (buttonRef.current == null) return;
-        //     buttonRef.current.disabled = false;
-        // }, 50);
+        setTimeout(() => {
+            if (buttonRef.current == null) return;
+            buttonRef.current.disabled = false;
+        }, 50);
         setScore(score + scoreMultiplier);
     }
 
