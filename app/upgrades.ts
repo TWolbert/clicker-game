@@ -38,11 +38,11 @@ export let ClickUpgrades: ClickUpgrade[] = [
     },
     {
         id: 3,
-        name: "Tegen Bryan zeuren dat de server lagged",
+        name: "Lindy jatten van Rick",
         cost: 17500,
         multiplier: 15,
         count: 0,
-        description: "Bryan is er niet blij mee..."
+        description: "Rick is er niet blij mee..."
     },
     {
         id: 4,
